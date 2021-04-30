@@ -10,7 +10,7 @@ def index():
 
 @app.route('/bye/<name>')
 def bye(name):
-    return f'Bye {name}'
+    return f'<h1 style="text-align:center;">Bye {name}</h1>'
 
 
 if __name__ == '__main__':

@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-
+from fastapi.responses import HTMLResponse
 app = FastAPI()
 
 
@@ -8,6 +8,7 @@ def index():
     return 'HW'
 
 
-@app.get('/bye/{name}')
+@app.get('/bye/{name}', response_class=HTMLResponse)
 def bye(name: str):
-    return f'Bye {name}! :)'
+    data = f'<h1>Bye {name}! :)</h1>'
+    return data
