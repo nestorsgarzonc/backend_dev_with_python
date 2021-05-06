@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Blog</title>
+    <link href="https://fonts.googleapis.com/css2?family=Raleway" rel="stylesheet">
+    <link rel="stylesheet" href="{{url_for('static', path='css/styles.css')}}">
+</head>
+
+<body>
+    <div class="wrapper">
+        <div class="top">
+            <div class="title">
+                <h1>Sebastian Blog</h1>
+            </div>
+        </div>
+        {% for post in posts %}
+        <div class="content">
+            <div class="card">
+                <h2>{{post.title}}</h2>
+                <p class="text">{{post.author}}</p>
+                <a href="{{url_for('post', id=post.id)}}">Read</a>+6
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</body>
+<footer>
+    <p>Made By NW with ♥️ in CO.</p>
+</footer>
+
+</html>
