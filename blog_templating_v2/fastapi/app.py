@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Form
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -71,3 +71,20 @@ def contact(request: Request):
         'title': 'Contact Me',
         'subtitle': 'Have questions? I have answers',
     })
+
+
+@app.post('/contact_me')
+def contact_me(
+        name: str = Form(...),
+        email: str = Form(...),
+        phone: str = Form(...),
+        message: str = Form(...),
+):
+    data = {
+        'name': name,
+        'email': email,
+        'phone': phone,
+        'message': message,
+    }
+    print(data)
+    return data
