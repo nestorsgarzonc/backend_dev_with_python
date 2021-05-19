@@ -24,29 +24,48 @@ class Book(db.Model):
         '''
 
 
-db.create_all()
-new_book = Book(id=1, title="Harry Potter", author="J. K. Rowling", rating=9.3)
-db.session.add(new_book)
-db.session.commit()
-all_books = []
+try:
+    db.create_all()
+except Exception as e:
+    print(e)
 
 
 @app.route('/')
 def home():
+    all_books = db.session.query(Book).all()
     return render_template('index.html', books=all_books)
 
 
 @app.route("/add", methods=["GET", "POST"])
 def add():
     if request.method == 'POST':
-        data = {
-            "title": request.form['title'],
-            "author": request.form['author'],
-            "rating": request.form['rating'],
-        }
-        all_books.append(data)
+        data = Book(
+            title=request.form['title'],
+            author=request.form['author'],
+            rating=request.form['rating'],
+        )
+        db.session.add(data)
+        db.session.commit()
         return redirect(url_for('home'))
     return render_template('add.html')
+
+
+@app.route("/edit/<id>", methods=["GET", "POST"])
+def edit(id: str):
+    book = Book.query.get(id)
+    if request.method == 'POST':
+        book.rating = request.form['rating']
+        db.session.commit()
+        return redirect(url_for('home'))
+    return render_template('edit.html', book=book)
+
+
+@app.route("/delete/<id>", methods=["GET"])
+def delete(id: str):
+    book = Book.query.get(id)
+    db.session.delete(book)
+    db.session.commit()
+    return redirect(url_for('home'))
 
 
 if __name__ == "__main__":
