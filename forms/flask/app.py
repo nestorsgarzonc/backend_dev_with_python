@@ -25,11 +25,25 @@ def home():
     return render_template('index.html')
 
 
+@app.route('/sucess')
+def sucess():
+    return render_template('success.html')
+
+
+@app.route('/denied')
+def denied():
+    return render_template('denied.html')
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     form = LoginForm()
-    form.validate_on_submit()
-
+    if form.validate_on_submit():
+        print(form.email.data)
+        print(form.password.data)
+        if form.email.data == 'admin@gmail.com' and form.password.data == '123456':
+            return redirect('/sucess')
+        return redirect('/denied')
     return render_template('login.html', form=form)
 
 
