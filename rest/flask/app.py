@@ -8,8 +8,11 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///cafes.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
+API_KEY = '123123'
 
 # Cafe TABLE Configuration
+
+
 class Cafe(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(250), unique=True, nullable=False)
@@ -47,6 +50,47 @@ def all():
     return jsonify(data=coffees_json)
 
 
+@app.route("/add", methods=["POST"])
+def add():
+    new_cafe = Cafe(
+        name=request.form.get("name"),
+        map_url=request.form.get("map_url"),
+        img_url=request.form.get("img_url"),
+        location=request.form.get("loc"),
+        has_sockets=bool(request.form.get("sockets")),
+        has_toilet=bool(request.form.get("toilet")),
+        has_wifi=bool(request.form.get("wifi")),
+        can_take_calls=bool(request.form.get("calls")),
+        seats=request.form.get("seats"),
+        coffee_price=request.form.get("coffee_price"),
+    )
+    db.session.add(new_cafe)
+    db.session.commit()
+    return jsonify(response={'success': 'Successfully added the new cafe'})
+
+
+@app.route("/update_price/<cafe_id>", methods=["PATCH"])
+def update_price(cafe_id: str):
+    coffee = Cafe.query.get(cafe_id)
+    if coffee:
+        coffee.coffee_price = request.form.get('price')
+        db.session.commit()
+        return jsonify(response={'success': 'Successfully modified the price of the cafe'}), 200
+    return jsonify(response={'Error': 'Cafe dont found :c'}), 400
+
+
+@app.route("/delete_coffee/<cafe_id>", methods=["DELETE"])
+def delete_coffee(cafe_id: str):
+    coffee = Cafe.query.get(cafe_id)
+    if request.args.get('api-key') != API_KEY:
+        return jsonify(response={'Error': 'Dont authorized :c'}), 403
+    if coffee:
+        db.session.delete(coffee)
+        db.session.commit()
+        return jsonify(response={'success': 'Successfully deleted the cafe'}), 200
+    return jsonify(response={'Error': 'Cafe dont found :c'}), 400
+
+
 @app.route("/search")
 def search():
     loc = request.args.get('loc')
@@ -54,15 +98,6 @@ def search():
     if coffee:
         return jsonify(data=coffee.to_json())
     return jsonify(error='NOT FOUND')
-
-
-# HTTP GET - Read Record
-
-# HTTP POST - Create Record
-
-# HTTP PUT/PATCH - Update Record
-
-# HTTP DELETE - Delete Record
 
 
 if __name__ == '__main__':
