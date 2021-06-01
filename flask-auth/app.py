@@ -3,13 +3,14 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, current_user, logout_user
 
+login_manager = LoginManager()
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = 'any-secret-key-you-choose'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
-
+login_manager.init_app(app)
 # CREATE TABLE IN DB
 
 
@@ -22,6 +23,11 @@ class User(UserMixin, db.Model):
 # db.create_all()
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+
 @app.route('/')
 def home():
     return render_template('index.html')
@@ -32,12 +38,17 @@ def register():
     if request.method == 'POST':
         user = User(
             email=request.form['email'],
-            password=request.form['password'],
+            password=generate_password_hash(
+                request.form['password'],
+                salt_length=8
+            ),
             name=request.form['name'],
         )
         db.session.add(user)
         db.session.commit()
-        return redirect(url_for('secrets', id=user.id))
+        login_user(user)
+        flash('Logged in successfully.')
+        return redirect(url_for('secrets'))
     return render_template('register.html')
 
 
@@ -46,24 +57,30 @@ def login():
     if request.method == 'POST':
         user = User.query.filter_by(
             email=request.form['email'],
-            password=request.form['password'],
         ).first()
         if user:
-            return redirect(url_for('secrets', id=user.id))
+            password = request.form['password']
+            if check_password_hash(user.password, password=password):
+                login_user(user)
+                flash('Logged in successfully.')
+                return redirect(url_for('secrets'))
+            else:
+                return render_template('login.html', error=True)
         else:
             return render_template('login.html', error=True)
     return render_template('login.html')
 
 
-@app.route('/secrets/<id>')
-def secrets(id: str):
-    user = User.query.get(id)
-    return render_template('secrets.html', user=user)
+@app.route('/secrets')
+@login_required
+def secrets():
+    return render_template('secrets.html', user=current_user)
 
 
 @app.route('/logout')
 def logout():
-    pass
+    logout_user()
+    return redirect(url_for('home'))
 
 
 @app.route('/download')
