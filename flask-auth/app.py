@@ -30,7 +30,7 @@ def load_user(user_id):
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('index.html', is_logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -49,7 +49,7 @@ def register():
         login_user(user)
         flash('Logged in successfully.')
         return redirect(url_for('secrets'))
-    return render_template('register.html')
+    return render_template('register.html', is_logged_in=current_user.is_authenticated)
 
 
 @app.route('/login', methods=['GET', 'POST'])
@@ -65,16 +65,18 @@ def login():
                 flash('Logged in successfully.')
                 return redirect(url_for('secrets'))
             else:
+                flash('Invalid credentials')
                 return render_template('login.html', error=True)
         else:
+            flash('Opps occured an error')
             return render_template('login.html', error=True)
-    return render_template('login.html')
+    return render_template('login.html', is_logged_in=current_user.is_authenticated)
 
 
 @app.route('/secrets')
 @login_required
 def secrets():
-    return render_template('secrets.html', user=current_user)
+    return render_template('secrets.html', user=current_user, is_logged_in=current_user.is_authenticated)
 
 
 @app.route('/logout')
